@@ -1,3 +1,11 @@
+#include <cstdint>
+
+#include <tuple>
+
+#include <vector>
+
+// #include ... other project headers
+
 namespace eagle::dasm
 {
 	struct basic_block
@@ -8,27 +16,38 @@ namespace eagle::dasm
 		std::vector<codec::dec::inst> insts;
 	}
 
-    class dasm_kernel
-    {
-    protected:
-        virtual std::pair<codec::dec::inst, uint8_t> decode_current() = 0;
-		virtual uint8_t branch_count() = 0;
-        virtual std::pair<uint32_t, uint32_t> get_branches() = 0;
+	class dasm_kernel
+	{
+	protected:
+		/// @brief decodes an instruction at the current rva, the function assumes that the rva is located at a valid instruction
+		/// @return pair with [decoded instruction, instruction length] at the current rva
+		virtual std::pair<codec::dec::inst, uint8_t> decode_current() = 0;
 
+		/// @brief decodes an instruction at the current rva
+		/// @return a list of potential branches the instruction may take, for conditional jumps, the default branch will always be located in vec[0]
+		virtual std::vector<uint32_t> get_branches() = 0;
+
+		/// @brief getter for current rva state
+		/// @return current rva
 		virtual uint32_t get_current_rva();
-		virtual uint32_t set_current_rva();
-    };
 
-    class segment_dasm : private dasm_kernel
-    {
-    public:
+		/// @brief setter for the current rva
+		/// @param current_rva rva to update to
+		/// @return previous rva before replacement
+		virtual uint32_t set_current_rva(uint32_t current_rva);
+	};
+
+	class segment_dasm : private dasm_kernel
+	{
+	public:
 		// some kind of ctor for file data here
 		// ...
 
-
-		// this watches out for the branching instructions in the current block and actually analyzes it properly
-        basic_block get_block(uint32_t rva)
-        {
+		/// @brief updated the current rva and begins dissasembling a block from there until a block ends with a branching instruction
+		/// @param rva rva of the block to dissasemble
+		/// @return structure containing the basic block which was dissasembled
+		basic_block get_block(uint32_t rva)
+		{
 			set_current_rva(rva);
 
 			basic_block block{};
@@ -48,10 +67,15 @@ namespace eagle::dasm
 			block.branch_two = std::get<1>(branches);
 
 			return block;
-        }
+		}
 
-		// gets all the instructions in a certain section and disregards the flow of the instructions
-		std::vector<codec::dec::inst> dump_section()
+		//
+
+		/// @brief gets all the instructions in a certain section and disregards the flow of the instructions
+		/// @param rva beginning rva of block chunk
+		/// @param rva_end inclusive rva of the final instruction byte
+		/// @return a list of instructions that are contained within the block
+		std::vector<codec::dec::inst> dump_section(uint32_t rva, uint32_t rva_end)
 		{
 			std::vector<codec::dec::inst> insts;
 
@@ -72,23 +96,21 @@ namespace eagle::dasm
 		uint32_t rva_begin;
 		uint32_t rva_end;
 
-		std::pair<codec::dec::inst, uint8_t> decode_current() override { ... }
-		std::pair<uint64_t, uint64_t> get_branches(uint32_t rva_current) { ... }
-    };
+		// std::pair<codec::dec::inst, uint8_t> decode_current() override
+	};
 }
-
 
 int main()
 {
 	// some main function which loads instructions
 	// ...
 
-	std::vec<u8> bin_data = ...;
+	std::vec<uint8_t> bin_data = ...;
 	eagle::dasm::segment_dasm dasm(bin_data);
 
 	std::vector<codec::dec::inst> insts = dasm.dump_section();
 	for (auto inst : insts)
-		print( inst ); // dump all the instructions for the entire section into a print
+		print(inst); // dump all the instructions for the entire section into a print
 
 	std::set<uint32_t> discovered_rvas;
 	std::vector<basic_block> blocks;
@@ -96,13 +118,15 @@ int main()
 	std::dequeue<uint32> rva_queue;
 	rva_queue.push(start_rva);
 
-	while(rva_queue.empty())
+	while (rva_queue.empty())
 	{
 		eagle::dasm::segment_dasm dasm(bin_data);
 		basic_block block = dasm.get_block();
 
-		auto insert_branch = [&](auto branch_rva) {
-			if (branch_rva != -1) {
+		auto insert_branch = [&](auto branch_rva)
+		{
+			if (branch_rva != -1)
+			{
 				if (discovered_rvas.insert(branch_rva))
 					rva_queue.push(branch_rva);
 			}
@@ -114,11 +138,11 @@ int main()
 		blocks.push_back(block);
 	}
 
-	print ("here are the discovered blocks");
-	for (auto& block : blocks)
+	print("here are the discovered blocks");
+	for (auto &block : blocks)
 	{
-		print("block begins: " + block.rva_begin + " block ends: " + block.rva_end );
+		print("block begins: " + block.rva_begin + " block ends: " + block.rva_end);
 		for (auto inst : block.insts)
-			print( inst );
+			print(inst);
 	}
 }
