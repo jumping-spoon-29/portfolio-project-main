@@ -71,14 +71,6 @@ the following form: YYYY.0M.0D.
 [2024.08.07]: https://github.com/jrg94/portfolio-project/compare/v2024.01.07...v2024.08.07
 [2024.01.07]: https://github.com/jrg94/portfolio-project/releases/tag/v2024.01.07
 
-## [2024.09.16]
-
-### Added
-
-- Designed a JSON Component component
-- Designed a String Encryption component
-- Designed a Bank component
-
 ## [2024.10.3]
 
 ### Added
@@ -90,3 +82,11 @@ the following form: YYYY.0M.0D.
 - Added basic use case where blocks are dissasembled based on their branches
 - Accounted for infinite loops and prevented following loops in block jumping
 - Setup basic block structure
+
+## [2024.09.16]
+
+### Added
+
+- Designed a JSON Component component
+- Designed a String Encryption component
+- Designed a Bank component
