@@ -8,6 +8,52 @@ the following form: YYYY.0M.0D.
 
 ## [Unreleased]
 
+## [2024.11.4]
+
+### Added
+
+- Designed abstract class for segment_dasm component
+- Added implementation of kernel methods and also introduced x86 instruction dissasembly library
+- Added to_string and equals methods
+
+### Updated
+
+- Added constructor so that there will be a data buffer to read instructions from
+
+## [2024.10.21]
+
+### Added
+
+- Designed kernel and enhanced interfaces for segment_dasm/dasm_kernel component
+
+### Updated
+
+- Solidified contracts for the existing interface functions
+- Added documentation for excepted functionality of kernel
+- Refined return types for clarity
+
+## [2024.10.3]
+
+### Added
+
+- Designed a proof of concept for dissasembler component
+
+### Updated
+
+- Added basic use case where blocks are dissasembled based on their branches
+- Accounted for infinite loops and prevented following loops in block jumping
+- Setup basic block structure
+
+## [2024.09.16]
+
+### Added
+
+- Designed a JSON Component component
+- Designed a String Encryption component
+- Designed a Bank component
+
+```
+
 ## [2024.08.07]
 
 ### Added
@@ -71,38 +117,5 @@ the following form: YYYY.0M.0D.
 [2024.08.07]: https://github.com/jrg94/portfolio-project/compare/v2024.01.07...v2024.08.07
 [2024.01.07]: https://github.com/jrg94/portfolio-project/releases/tag/v2024.01.07
 
-## [2024.10.21]
-
-### Added
-
-- Designed kernel and enhanced interfaces for segment_dasm/dasm_kernel component
-
-### Updated
-
-- Solidified contracts for the existing interface functions
-- Added documentation for excepted functionality of kernel
-- Refined return types for clarity
-
-## [2024.10.3]
-
-### Added
-
-- Designed a proof of concept for dissasembler component
-
-### Updated
-
-- Added basic use case where blocks are dissasembled based on their branches
-- Accounted for infinite loops and prevented following loops in block jumping
-- Setup basic block structure
-
-## [2024.09.16]
-
-### Added
-
-- Designed a JSON Component component
-- Designed a String Encryption component
-- Designed a Bank component
-
-```
 
 ```

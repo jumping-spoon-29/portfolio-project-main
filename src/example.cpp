@@ -37,11 +37,19 @@ namespace eagle::dasm
 		virtual uint32_t set_current_rva(uint32_t rva);
 	};
 
-	class segment_dasm : private dasm_kernel
+	class segment_dasm : public std::enable_shared_from_this<segment_dasm>, private dasm_kernel
 	{
 	public:
-		// some kind of ctor for file data here
-		// ...
+		/// @brief constructs segment dasm
+		/// @param data_buff readable data pointer to instructions
+		/// @param size size of instructions
+		/// @param rva rva of data
+		segment_dasm(char *data_buff, size_t size, uint32_t rva)
+			: data_buffer_begin(data_buff), buffer_size(size)
+		{
+			rva_begin = rva_begin;
+			rva_end = rva_begin + size;
+		}
 
 		/// @brief dissasembled instructions until a branching instruction is reached at the current block
 		/// @param rva the rva at which the target block begins
@@ -90,21 +98,93 @@ namespace eagle::dasm
 			return insts;
 		}
 
+		/// @brief converts the current state of segment_dasm to a string
+		/// @return string output of the class instance
+		std::string to_string()
+		{
+			return std::format("segment_dasm current_rva: {}, begin: {}, end: {}",
+							   current_rva, rva_begin, rva_end);
+		}
+
+		/// @brief compares current instance to another instance of disassembler
+		/// @param other refrence instance to compare to
+		/// @return are instances equal
+		bool equals(segment_dasm &other)
+		{
+			return other.rva_begin == rva_begin &&
+				   other.rva_end == rva_end &&
+				   other.current_rva == current_rva;
+		}
+
 	private:
+		char *data_buffer_begin;
+		size_t buffer_size;
+
 		uint32_t rva_begin;
 		uint32_t rva_end;
+
+		uint32_t current_rva;
 
 		// std::pair<codec::dec::inst, uint8_t> decode_current() override{ }
 		// std::vector<uint32_t> get_branches() override { }
 
 		/// @brief getter for the current rva
 		/// @return the current rva
-		virtual uint32_t get_current_rva() override {};
+		virtual uint32_t get_current_rva() override
+		{
+			return current_rva;
+		}
 
 		/// @brief updates the current rva
 		/// @param rva new rva
 		/// @return old rva before replacement
-		virtual uint32_t set_current_rva(uint32_t rva) override {};
+		virtual uint32_t set_current_rva(uint32_t rva) override
+		{
+			auto prev = current_rva;
+			current_rva = rva;
+
+			return prev;
+		};
+
+		/// @brief decodes an instruction at the current rva, the function assumes that the rva is located at a valid instruction
+		/// @return pair with [decoded instruction, instruction length] at the current rva
+		virtual std::pair<codec::dec::inst, uint8_t> decode_current() override
+		{
+			ZyanUSize offset = 0;
+			dec::inst_info decoded_instruction{};
+			ZydisDecoderDecodeFull(&zyids_decoder, static_cast<char *>(data_buffer_begin) + offset, size - offset, &decoded_instruction.instruction, decoded_instruction.operands);
+
+			return {decoded_instruction, offset};
+		}
+
+		/// @brief decodes the instruction at the current rva and returns branches
+		/// @return returns a list of rvas the instruction branches to. len(0) if none, len(1) if jmp, len(2) if conditional jump
+		virtual std::vector<uint32_t> get_branches() override
+		{
+			std::vector<uint32_t> results;
+
+			auto &[instruction, size] = decode_current();
+			if (instruction.branching == ZYDIS_BRANCHING_NONE)
+			{
+				results.push_back(current_rva + size);
+				return results;
+			}
+			else
+			{
+				auto &[inst, operands] = instruction;
+
+				// branching instruction
+				uint64_t target_address = current_rva;
+				for (int i = 0; i < instruction.operand_count; i++)
+				{
+					auto result = ZydisCalcAbsoluteAddress(&inst, &operands[i], current_rva, &target_address);
+					if (result == ZYAN_STATUS_SUCCESS)
+						results.push_back(target_address);
+				}
+			}
+
+			return results;
+		}
 	};
 }
 
