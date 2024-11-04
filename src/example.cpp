@@ -23,18 +23,18 @@ namespace eagle::dasm
 		/// @return pair with [decoded instruction, instruction length] at the current rva
 		virtual std::pair<codec::dec::inst, uint8_t> decode_current() = 0;
 
-		/// @brief decodes an instruction at the current rva
-		/// @return a list of potential branches the instruction may take, for conditional jumps, the default branch will always be located in vec[0]
+		/// @brief decodes the instruction at the current rva and returns branches
+		/// @return returns a list of rvas the instruction branches to. len(0) if none, len(1) if jmp, len(2) if conditional jump
 		virtual std::vector<uint32_t> get_branches() = 0;
 
-		/// @brief getter for current rva state
-		/// @return current rva
+		/// @brief getter for the current rva
+		/// @return the current rva
 		virtual uint32_t get_current_rva();
 
-		/// @brief setter for the current rva
-		/// @param current_rva rva to update to
-		/// @return previous rva before replacement
-		virtual uint32_t set_current_rva(uint32_t current_rva);
+		/// @brief updates the current rva
+		/// @param rva new rva
+		/// @return old rva before replacement
+		virtual uint32_t set_current_rva(uint32_t rva);
 	};
 
 	class segment_dasm : private dasm_kernel
@@ -43,9 +43,9 @@ namespace eagle::dasm
 		// some kind of ctor for file data here
 		// ...
 
-		/// @brief updated the current rva and begins dissasembling a block from there until a block ends with a branching instruction
-		/// @param rva rva of the block to dissasemble
-		/// @return structure containing the basic block which was dissasembled
+		/// @brief dissasembled instructions until a branching instruction is reached at the current block
+		/// @param rva the rva at which the target block begins
+		/// @return the basic block the instructions create
 		basic_block get_block(uint32_t rva)
 		{
 			set_current_rva(rva);
@@ -69,13 +69,11 @@ namespace eagle::dasm
 			return block;
 		}
 
-		//
-
 		/// @brief gets all the instructions in a certain section and disregards the flow of the instructions
-		/// @param rva beginning rva of block chunk
-		/// @param rva_end inclusive rva of the final instruction byte
-		/// @return a list of instructions that are contained within the block
-		std::vector<codec::dec::inst> dump_section(uint32_t rva, uint32_t rva_end)
+		/// @param rva_begin the rva at which the starting instruction is at
+		/// @param rva_end the inclusive rva at which the last instruction ends
+		/// @return the list of instructions which are contained within this range
+		std::vector<codec::dec::inst> dump_section(uint32_t rva_begin, uint32_t rva_end)
 		{
 			std::vector<codec::dec::inst> insts;
 
@@ -96,7 +94,17 @@ namespace eagle::dasm
 		uint32_t rva_begin;
 		uint32_t rva_end;
 
-		// std::pair<codec::dec::inst, uint8_t> decode_current() override
+		// std::pair<codec::dec::inst, uint8_t> decode_current() override{ }
+		// std::vector<uint32_t> get_branches() override { }
+
+		/// @brief getter for the current rva
+		/// @return the current rva
+		virtual uint32_t get_current_rva() override {};
+
+		/// @brief updates the current rva
+		/// @param rva new rva
+		/// @return old rva before replacement
+		virtual uint32_t set_current_rva(uint32_t rva) override {};
 	};
 }
 

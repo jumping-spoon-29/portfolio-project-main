@@ -71,6 +71,18 @@ the following form: YYYY.0M.0D.
 [2024.08.07]: https://github.com/jrg94/portfolio-project/compare/v2024.01.07...v2024.08.07
 [2024.01.07]: https://github.com/jrg94/portfolio-project/releases/tag/v2024.01.07
 
+## [2024.10.21]
+
+### Added
+
+- Designed kernel and enhanced interfaces for segment_dasm/dasm_kernel component
+
+### Updated
+
+- Solidified contracts for the existing interface functions
+- Added documentation for excepted functionality of kernel
+- Refined return types for clarity
+
 ## [2024.10.3]
 
 ### Added
@@ -90,3 +102,7 @@ the following form: YYYY.0M.0D.
 - Designed a JSON Component component
 - Designed a String Encryption component
 - Designed a Bank component
+
+```
+
+```
